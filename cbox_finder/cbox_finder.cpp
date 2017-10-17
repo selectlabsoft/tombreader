@@ -39,15 +39,34 @@ void matchCard(int method, const cv::Mat& cboxes, cv::Mat& card)
     // cv::imshow(result_window, result);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc < 2)
+    {
+        std::cout << "Usage: cbox_finder path /path/to/checkboxes.png \n";
+        return -1;
+    }
+
     std::cout << "Built with OpenCV " << CV_VERSION << std::endl;
-    cv::Mat cboxes = cv::imread(
-            "/home/ryan/doc/misc/soc-lafayette/checkboxes.png",
-            CV_LOAD_IMAGE_GRAYSCALE);
+
+    boost::filesystem::path p (argv[1]);
+    if (!is_directory(p))
+    {
+        std::cout << "First arg must be directory." << std::endl;
+        return -1;
+    }
+
+    boost::filesystem::path checkbox (argv[2]);
+    if (!is_regular_file(checkbox))
+    {
+        std::cout << "Second arg must be file." << std::endl;
+        return -1;
+    }
+
+    cv::Mat cboxes = cv::imread(checkbox.string(), CV_LOAD_IMAGE_GRAYSCALE);
     if (cboxes.empty()) // Check for invalid input
     {
-        std::cout << "Could not open or find the image" << std::endl;
+        std::cout << "Could not open or find checkboxes.png" << std::endl;
         return -1;
     }
 
@@ -58,8 +77,7 @@ int main()
     // cv::namedWindow(result_window, CV_WINDOW_NORMAL);
 
     boost::filesystem::directory_iterator end_itr;
-    for (boost::filesystem::directory_iterator itr(
-                "/home/ryan/doc/misc/soc-lafayette");
+    for (boost::filesystem::directory_iterator itr(p);
             itr != end_itr; itr++)
     {
         auto& path = itr->path();
